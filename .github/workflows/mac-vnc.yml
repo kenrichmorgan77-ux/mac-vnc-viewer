@@ -1,51 +1,53 @@
-name: macOS Visual for RustDesk (Bypass Mode)
+name: Ubuntu Visual for RustDesk
 on: 
   workflow_dispatch:
 
 jobs:
-  mac-rustdesk-session:
+  ubuntu-rustdesk-session:
     runs-on: ubuntu-latest
     steps:
-      - name: Install RustDesk Client & Server Tools
+      - name: Install Desktop Environment & Dependencies
         run: |
-          brew install --cask rustdesk
-          # Mengunduh modul server pendukung untuk bypass lokal
-          brew install node
-          npm install -g rustdesk-server || true
+          sudo apt-get update
+          # Menginstal GUI ringan (XFCE) dan Virtual Framebuffer
+          sudo apt-get install -y xfce4 xfce4-goodies xvfb wget gdebi-core
 
-      - name: Start Local RustDesk Controller
+      - name: Download and Install RustDesk
         run: |
-          echo "Memulai pengontrol internal RustDesk..."
-          # Menjalankan aplikasi utama RustDesk
-          sudo /Applications/RustDesk.app/Contents/MacOS/rustdesk --daemon &
+          echo "Mengunduh RustDesk versi terbaru untuk Linux..."
+          wget https://github.com
+          # Menginstal paket .deb beserta dependency otomatis menggunakan gdebi
+          sudo gdebi --non-interactive rustdesk-1.3.7-x86_64.deb
+
+      - name: Start Virtual Display & RustDesk Service
+        run: |
+          echo "Memulai Virtual Desktop..."
+          # Menjalankan Xvfb di background agar GUI bisa dirender tanpa monitor fisik
+          Xvfb :1 -screen 0 1280x1024x24 &
+          export DISPLAY=:1
+          
+          echo "Memulai sesi XFCE Desktop..."
+          startxfce4 &
           sleep 5
-          # Memaksa password pengunci sesi
-          sudo /Applications/RustDesk.app/Contents/MacOS/rustdesk --password 123456
-          sleep 2
 
-      - name: Create Direct Public Tunnel
-        run: |
-          echo "=========================================================="
-          echo "Membuka jalur terowongan publik via localhost.run..."
-          echo "=========================================================="
-          # Mengalihkan port kontrol RustDesk (21116 / 21117) ke publik via SSH
-          ssh -o StrictHostKeyChecking=no -R 80:localhost:21116 nokey@localhost.run &
-          sleep 10
+          echo "Mengaktifkan RustDesk service..."
+          sudo systemctl start rustdesk || true
+          
+          # Mengatur password akses manual menjadi 123456
+          rustdesk --password 123456
 
-      - name: Display Connection Details
+      - name: Display RustDesk Connection Info
         run: |
           echo "============================================="
           echo "RUSTDESK CONNECTION DETAILS:"
           echo "============================================="
-          RUSTDESK_ID=$(/Applications/RustDesk.app/Contents/MacOS/rustdesk --get-id 2>/dev/null)
-          echo "Target ID: $RUSTDESK_ID"
-          echo "Password : 123456"
-          echo "============================================="
-          echo "Jika ID di atas masih offline, periksa log SSH di atas"
-          echo "untuk melihat URL publik localhost.run Anda."
+          # Mengambil ID unik dari sistem Linux
+          RUSTDESK_ID=$(rustdesk --get-id 2>/dev/null)
+          echo "Your RustDesk ID: $RUSTDESK_ID"
+          echo "Your Password   : 123456"
           echo "============================================="
 
       - name: Keep Alive Session
         run: |
-          echo "Sesi aktif. Menunggu koneksi masuk..."
+          echo "Sesi Ubuntu aktif! Silakan remote menggunakan ID di atas."
           sleep 3600
