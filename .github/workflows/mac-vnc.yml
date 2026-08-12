@@ -14,21 +14,20 @@ jobs:
 
       - name: Download and Install RustDesk
         run: |
-          echo "Mengunduh RustDesk versi resmi Linux..."
-          # Menggunakan curl -L agar mengikuti redirect aset GitHub secara aman
+          echo "Mengunduh RustDesk versi resmi Linux dari mirror tepercaya..."
+          # Menggunakan cermin rilis stabil RustDesk dari repositori pihak ketiga/pribadi untuk menghindari blokir HTML GitHub
+          curl -L -o rustdesk.deb "https://r2.dev" || \
           curl -L -o rustdesk.deb "https://github.com"
           
-          echo "Verifikasi file yang terunduh..."
+          echo "Verifikasi jenis file..."
           file rustdesk.deb
           
           echo "Menginstal RustDesk..."
-          # Menggunakan apt install untuk otomatis memperbaiki dependencies yang kurang
           sudo apt-get install -y ./rustdesk.deb
 
       - name: Start Virtual Display & RustDesk Service
         run: |
           echo "Memulai Virtual Desktop..."
-          # Menjalankan Xvfb di background agar GUI bisa dirender tanpa monitor fisik
           Xvfb :1 -screen 0 1280x1024x24 &
           export DISPLAY=:1
           
@@ -47,7 +46,6 @@ jobs:
           echo "============================================="
           echo "RUSTDESK CONNECTION DETAILS:"
           echo "============================================="
-          # Mengambil ID unik dari sistem Linux
           RUSTDESK_ID=$(sudo rustdesk --get-id 2>/dev/null)
           echo "Your RustDesk ID: $RUSTDESK_ID"
           echo "Your Password   : 123456"
