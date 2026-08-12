@@ -1,0 +1,18 @@
+name: macOS Visual for VNC Viewer
+on: 
+  workflow_dispatch:
+
+jobs:
+  mac-vnc-session:
+    runs-on: macos-13
+    steps:
+      - name: Enable macOS Built-in VNC Server
+        run: |
+          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -restart -agent -privs -all
+          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -allowAccessFor -allUsers
+          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -clientopts -setvncpasswd -vncpasswd 123456
+
+      - name: Open Direct Public Tunnel For VNC Viewer
+        run: |
+          echo "Membuat jalur terowongan port VNC ke publik..."
+          ssh -o StrictHostKeyChecking=no -R 80:localhost:5900 nokey@localhost.run
