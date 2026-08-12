@@ -10,16 +10,19 @@ jobs:
         run: |
           sudo apt-get update
           # Menginstal GUI ringan (XFCE) dan Virtual Framebuffer
-          sudo apt-get install -y xfce4 xfce4-goodies xvfb wget
+          sudo apt-get install -y xfce4 xfce4-goodies xvfb wget curl
 
       - name: Download and Install RustDesk
         run: |
           echo "Mengunduh RustDesk versi resmi Linux..."
-          # Menggunakan URL direct-download rilis stabil terbaru
-          wget -O rustdesk.deb https://github.com
+          # Menggunakan curl -L agar mengikuti redirect aset GitHub secara aman
+          curl -L -o rustdesk.deb "https://github.com"
+          
+          echo "Verifikasi file yang terunduh..."
+          file rustdesk.deb
           
           echo "Menginstal RustDesk..."
-          # Menggunakan apt install untuk bypass dependency otomatis
+          # Menggunakan apt install untuk otomatis memperbaiki dependencies yang kurang
           sudo apt-get install -y ./rustdesk.deb
 
       - name: Start Virtual Display & RustDesk Service
