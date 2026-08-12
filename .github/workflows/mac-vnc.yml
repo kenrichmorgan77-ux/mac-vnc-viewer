@@ -10,20 +10,13 @@ jobs:
         run: |
           sudo apt-get update
           # Menginstal GUI ringan (XFCE) dan Virtual Framebuffer
-          sudo apt-get install -y xfce4 xfce4-goodies xvfb wget curl
+          sudo apt-get install -y xfce4 xfce4-goodies xvfb
 
-      - name: Download and Install RustDesk
+      - name: Install RustDesk via Snap
         run: |
-          echo "Mengunduh RustDesk versi resmi Linux dari mirror tepercaya..."
-          # Menggunakan cermin rilis stabil RustDesk dari repositori pihak ketiga/pribadi untuk menghindari blokir HTML GitHub
-          curl -L -o rustdesk.deb "https://r2.dev" || \
-          curl -L -o rustdesk.deb "https://github.com"
-          
-          echo "Verifikasi jenis file..."
-          file rustdesk.deb
-          
-          echo "Menginstal RustDesk..."
-          sudo apt-get install -y ./rustdesk.deb
+          echo "Menginstal RustDesk dari Snap Store resmi..."
+          # Menggunakan snap untuk menghindari masalah unduhan berkas HTML/SSL
+          sudo snap install rustdesk
 
       - name: Start Virtual Display & RustDesk Service
         run: |
@@ -35,18 +28,17 @@ jobs:
           startxfce4 &
           sleep 5
 
-          echo "Mengaktifkan RustDesk service..."
-          sudo systemctl start rustdesk || true
-          
-          # Mengatur password akses manual menjadi 123456
-          sudo rustdesk --password 123456
+          echo "Mengatur password akses manual RustDesk..."
+          # Mengonfigurasi kata sandi otentikasi melalui snap-command RustDesk
+          sudo snap run rustdesk --password 123456
 
       - name: Display RustDesk Connection Info
         run: |
           echo "============================================="
           echo "RUSTDESK CONNECTION DETAILS:"
           echo "============================================="
-          RUSTDESK_ID=$(sudo rustdesk --get-id 2>/dev/null)
+          # Mengambil ID koneksi unik RustDesk
+          RUSTDESK_ID=$(sudo snap run rustdesk --get-id 2>/dev/null)
           echo "Your RustDesk ID: $RUSTDESK_ID"
           echo "Your Password   : 123456"
           echo "============================================="
