@@ -4,7 +4,7 @@ on:
 
 jobs:
   mac-rustdesk-session:
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     steps:
       - name: Install RustDesk Client & Server Tools
         run: |
