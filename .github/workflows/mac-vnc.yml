@@ -10,15 +10,18 @@ jobs:
         run: |
           brew install --cask rustdesk
 
-      - name: Start RustDesk Service
+      - name: Run RustDesk in Foreground Process
         run: |
-          sudo launchctl load -w /Library/LaunchDaemons/com.rustdesk.rustdesk.plist 2>/dev/null || true
-          sleep 5
+          echo "Memulai RustDesk..."
+          # Menjalankan langsung aplikasi utama di background proses CI
+          sudo /Applications/RustDesk.app/Contents/MacOS/rustdesk --daemon &
+          sleep 10
 
       - name: Configure RustDesk Password
         run: |
           # Mengatur password default menjadi 123456
           sudo /Applications/RustDesk.app/Contents/MacOS/rustdesk --password 123456
+          sleep 5
 
       - name: Display RustDesk Connection Info
         run: |
