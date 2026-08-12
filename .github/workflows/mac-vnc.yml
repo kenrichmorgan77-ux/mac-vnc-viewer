@@ -1,18 +1,38 @@
-name: macOS Visual for VNC Viewer
+name: macOS Visual for RustDesk
 on: 
   workflow_dispatch:
 
 jobs:
-  mac-vnc-session:
+  mac-rustdesk-session:
     runs-on: macos-14
     steps:
-      - name: Enable macOS Built-in VNC Server
+      - name: Install RustDesk via Homebrew
         run: |
-          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -activate -configure -access -on -restart -agent -privs -all
-          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -allowAccessFor -allUsers
-          sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -configure -clientopts -setvncpasswd -vncpasswd 123456
+          brew install --cask rustdesk
 
-      - name: Open Direct Public Tunnel For VNC Viewer
+      - name: Start RustDesk Service
         run: |
-          echo "Membuat jalur terowongan port VNC ke publik..."
-          ssh -o StrictHostKeyChecking=no -R 80:localhost:5900 nokey@localhost.run
+          sudo launchctl load -w /Library/LaunchDaemons/com.rustdesk.rustdesk.plist 2>/dev/null || true
+          sleep 5
+
+      - name: Configure RustDesk Password
+        run: |
+          # Mengatur password default menjadi 123456
+          sudo /Applications/RustDesk.app/Contents/MacOS/rustdesk --password 123456
+
+      - name: Display RustDesk Connection Info
+        run: |
+          echo "============================================="
+          echo "RUSTDESK CONNECTION DETAILS:"
+          echo "============================================="
+          # Mengambil ID RustDesk yang di-generate otomatis
+          RUSTDESK_ID=$(/Applications/RustDesk.app/Contents/MacOS/rustdesk --get-id 2>/dev/null)
+          echo "Your RustDesk ID: $RUSTDESK_ID"
+          echo "Your Password   : 123456"
+          echo "============================================="
+          
+      - name: Keep Alive Session
+        run: |
+          echo "Sesi berjalan... Silakan hubungi via RustDesk."
+          # Menjaga runner tetap aktif selama 1 jam (3600 detik)
+          sleep 3600
