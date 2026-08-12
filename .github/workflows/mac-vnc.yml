@@ -1,4 +1,4 @@
-name: macOS Visual for RustDesk
+name: macOS Visual for RustDesk (Bypass Mode)
 on: 
   workflow_dispatch:
 
@@ -6,36 +6,46 @@ jobs:
   mac-rustdesk-session:
     runs-on: macos-14
     steps:
-      - name: Install RustDesk via Homebrew
+      - name: Install RustDesk Client & Server Tools
         run: |
           brew install --cask rustdesk
+          # Mengunduh modul server pendukung untuk bypass lokal
+          brew install node
+          npm install -g rustdesk-server || true
 
-      - name: Run RustDesk in Foreground Process
+      - name: Start Local RustDesk Controller
         run: |
-          echo "Memulai RustDesk..."
-          # Menjalankan langsung aplikasi utama di background proses CI
+          echo "Memulai pengontrol internal RustDesk..."
+          # Menjalankan aplikasi utama RustDesk
           sudo /Applications/RustDesk.app/Contents/MacOS/rustdesk --daemon &
+          sleep 5
+          # Memaksa password pengunci sesi
+          sudo /Applications/RustDesk.app/Contents/MacOS/rustdesk --password 123456
+          sleep 2
+
+      - name: Create Direct Public Tunnel
+        run: |
+          echo "=========================================================="
+          echo "Membuka jalur terowongan publik via localhost.run..."
+          echo "=========================================================="
+          # Mengalihkan port kontrol RustDesk (21116 / 21117) ke publik via SSH
+          ssh -o StrictHostKeyChecking=no -R 80:localhost:21116 nokey@localhost.run &
           sleep 10
 
-      - name: Configure RustDesk Password
-        run: |
-          # Mengatur password default menjadi 123456
-          sudo /Applications/RustDesk.app/Contents/MacOS/rustdesk --password 123456
-          sleep 5
-
-      - name: Display RustDesk Connection Info
+      - name: Display Connection Details
         run: |
           echo "============================================="
           echo "RUSTDESK CONNECTION DETAILS:"
           echo "============================================="
-          # Mengambil ID RustDesk yang di-generate otomatis
           RUSTDESK_ID=$(/Applications/RustDesk.app/Contents/MacOS/rustdesk --get-id 2>/dev/null)
-          echo "Your RustDesk ID: $RUSTDESK_ID"
-          echo "Your Password   : 123456"
+          echo "Target ID: $RUSTDESK_ID"
+          echo "Password : 123456"
           echo "============================================="
-          
+          echo "Jika ID di atas masih offline, periksa log SSH di atas"
+          echo "untuk melihat URL publik localhost.run Anda."
+          echo "============================================="
+
       - name: Keep Alive Session
         run: |
-          echo "Sesi berjalan... Silakan hubungi via RustDesk."
-          # Menjaga runner tetap aktif selama 1 jam (3600 detik)
+          echo "Sesi aktif. Menunggu koneksi masuk..."
           sleep 3600
