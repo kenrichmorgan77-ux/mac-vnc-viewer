@@ -4,7 +4,7 @@ on:
 
 jobs:
   mac-vnc-session:
-    runs-on: macos-13
+    runs-on: macos-26-xlarge
     steps:
       - name: Enable macOS Built-in VNC Server
         run: |
